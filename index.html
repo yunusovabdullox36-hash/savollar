@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pedagoglar uchun Premium Test</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+:root{
+  --gold:#bfa14a;
+  --gold-dark:#8f7a2f;
+  --bg:#050505;
+  --card:#0a0a0a;
+}
+
+*{
+  transition: .35s cubic-bezier(.4,0,.2,1);
+  box-sizing: border-box;
+}
+
+body{
+  background: radial-gradient(circle at top, var(--card), var(--bg));
+  color: var(--gold);
+}
+
+/* CARD */
+.card{
+  background: var(--card);
+  border: 1px solid var(--gold-dark);
+  box-shadow: 0 0 25px rgba(191,161,74,.08);
+}
+
+/* HOVER */
+.gold-hover:hover{
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 10px 30px rgba(191,161,74,.18),
+    inset 0 0 0 1px var(--gold);
+}
+
+/* OPTION */
+.option{
+  min-height:48px;
+}
+.option:hover{
+  background: rgba(191,161,74,.08);
+  transform: translateX(6px);
+}
+.option.active{
+  background: rgba(191,161,74,.15);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+/* TEXT */
+#qText{
+  line-height:1.5;
+  word-wrap:break-word;
+}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  h1{font-size:1.7rem}
+  h2{font-size:1.3rem}
+  .card{padding:1.25rem!important}
+  button{font-size:.9rem;padding:.75rem 1rem!important}
+}
+
+@media(max-width:768px){
+  body{padding:1rem}
+  .card{width:100%}
+}
+</style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center">
+
+<!-- START -->
+<div id="start" class="card p-12 rounded-2xl text-center gold-hover max-w-xl w-full">
+  <h1 class="text-4xl font-bold tracking-widest mb-6">
+    PEDAGOG TEST
+  </h1>
+  <p class="text-[var(--gold-dark)] mb-8">
+    1–5 sinf o‘qituvchilari uchun attestatsiya testi
+  </p>
+  <button onclick="startTest()"
+    class="px-10 py-4 rounded-xl bg-[var(--gold)] text-black font-bold gold-hover w-full sm:w-auto">
+    TESTNI BOSHLASH
+  </button>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-2">
+  <div class="card p-8 rounded-2xl w-full max-w-2xl">
+
+    <h2 id="qText" class="text-2xl font-semibold mb-6"></h2>
+    <div id="opts" class="space-y-3"></div>
+
+    <div class="flex justify-between mt-8 gap-3">
+      <button onclick="prev()"
+        class="flex-1 px-5 py-2 border border-[var(--gold-dark)] rounded-lg gold-hover">
+        ⬅ ORQAGA
+      </button>
+      <button id="nextBtn" onclick="next()"
+        class="flex-1 px-6 py-2 bg-[var(--gold)] text-black rounded-lg font-bold gold-hover">
+        OLDINGA
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="hidden card p-8 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+  <h2 class="text-4xl font-bold mb-6">NATIJA</h2>
+  <p id="score" class="text-2xl mb-6"></p>
+  <div id="review" class="space-y-4"></div>
+  <button onclick="restart()"
+    class="mt-8 px-8 py-4 bg-[var(--gold)] text-black font-bold rounded-xl gold-hover w-full sm:w-auto">
+    QAYTA BOSHLASH
+  </button>
+</div>
+
+<script>
+const questions=[
+{q:"Kompetensiyaviy yondashuvning asosiy maqsadi?",o:["Yodlash","Amaliy ko‘nikma","Nazorat","Baholash"],a:1},
+{q:"Formativ baholash nimaga xizmat qiladi?",o:["Reyting","Jarayon tahlili","Imtihon","Nazorat"],a:1},
+{q:"Bloom taksonomiyasining eng yuqori bosqichi?",o:["Bilish","Tushunish","Tahlil","Yaratish"],a:3},
+{q:"Differensial ta’lim nimani ta’minlaydi?",o:["Bir xil yondashuv","Individuallik","Faqat kuchlilar","Nazorat"],a:1},
+{q:"Refleksiya bu — ?",o:["Nazorat","O‘z faoliyatini tahlil","Baholash","Imtihon"],a:1},
+];
+
+while(questions.length<32){
+  questions.push({
+    q:`Pedagogik savol ${questions.length+1}: Zamonaviy darsning asosiy talabi?`,
+    o:["Faol ishtirok","Faqat ma’ruza","Yodlash","Jazo"],
+    a:0
+  });
+}
+
+let i=0;
+let ans=Array(32).fill(null);
+
+const startTest=()=>{
+  start.classList.add("hidden");
+  modal.classList.remove("hidden");
+  render();
+}
+
+const render=()=>{
+  const q=questions[i];
+  qText.innerText=`${i+1}. ${q.q}`;
+  opts.innerHTML="";
+  q.o.forEach((t,idx)=>{
+    const b=document.createElement("button");
+    b.className=`option w-full px-4 py-3 rounded-lg border border-[var(--gold-dark)] ${ans[i]==idx?"active":""}`;
+    b.innerText=t;
+    b.onclick=()=>{ans[i]=idx;render();}
+    opts.appendChild(b);
+  });
+  nextBtn.innerText=i===31?"YAKUNLASH":"OLDINGA";
+}
+
+const next=()=> i===31?finish():(i++,render());
+const prev=()=> i>0&&(i--,render());
+
+const finish=()=>{
+  modal.classList.add("hidden");
+  result.classList.remove("hidden");
+  let s=0;
+  review.innerHTML="";
+  questions.forEach((q,idx)=>{
+    const ok=q.a===ans[idx];
+    if(ok)s++;
+    review.innerHTML+=`
+    <div class="border border-[var(--gold-dark)] p-4 rounded-lg">
+      <b>${idx+1}.</b> ${q.q}<br>
+      Javobingiz:
+      <span class="${ok?"text-green-400":"text-red-400"}">
+        ${q.o[ans[idx]]||"Belgilanmagan"}
+      </span><br>
+      To‘g‘ri javob: <b>${q.o[q.a]}</b>
+    </div>`;
+  });
+  score.innerText=`Natija: ${s} / 32 ball`;
+}
+
+const restart=()=>location.reload();
+</script>
+
+</body>
+</html>
